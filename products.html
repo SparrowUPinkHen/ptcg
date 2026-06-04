@@ -6,6 +6,7 @@
   <title>商品 | SparrowUPinkHen PTCG</title>
   <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
 <header class="header">
@@ -21,42 +22,52 @@
 </header>
 
 <section class="product">
-  <div class="product-grid">
-
-    <div class="product-card">
-      <img src="images/product3.png" alt="騎拉帝納">
-      <h3>騎拉帝納 V 異圖 LOST ORIGIN</h3>
-      <p>PSA Gem Mint 10</p>
-      <strong>NT$100000</strong>
-    </div>
-
-    <div class="product-card">
-      <img src="images/product2.png" alt="漫才皮卡丘">
-      <h3>漫才皮卡丘（日版 Promo）</h3>
-      <p>PSA Gem Mint 10</p>
-      <strong>NT$35000</strong>
-    </div>
-
-    <div class="product-card">
-      <img src="images/product1.png" alt="生日皮卡丘">
-      <h3>生日皮卡丘（國際版）</h3>
-      <p>PSA Gem Mint 10</p>
-      <strong>NT$10000</strong>
-    </div>
-
-    <div class="product-card">
-      <img src="images/product4.jpg" alt="月伊布">
-      <h3>月伊布 NEO 2（日版 Promo）</h3>
-      <p>PSA Gem Mint 10</p>
-      <strong>NT$60000</strong>
-    </div>
-
-  </div>
+  <div id="product-list" class="product-grid"></div>
 </section>
 
 <footer>
   <p>© SparrowUPinkHen PTCG</p>
 </footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase.js"></script>
+
+<script>
+async function loadProducts() {
+  const container = document.getElementById("product-list");
+
+  const { data, error } = await supabaseClient
+    .from("products")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.log(error);
+    container.innerHTML = "<p>商品讀取失敗，請稍後再試。</p>";
+    return;
+  }
+
+  container.innerHTML = "";
+
+  data.forEach(product => {
+    const priceHTML =
+      product.price && product.price > 0
+        ? `<strong>NT$${product.price}</strong>`
+        : "";
+
+    container.innerHTML += `
+      <div class="product-card">
+        <img src="images/${product.image_url}" alt="${product.name}">
+        <h3>${product.name}</h3>
+        <p>${product.description}</p>
+        ${priceHTML}
+      </div>
+    `;
+  });
+}
+
+loadProducts();
+</script>
 
 <!--Start of Tawk.to Script-->
 <script type="text/javascript">

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>商品後台 | SparrowUPinkHen PTCG</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="header">
+  <nav class="navbar">
+    <a href="index.html">首頁</a>
+    <a href="products.html">商品</a>
+    <a href="collection.html">收藏展示</a>
+    <a href="about.html">關於我們</a>
+    <a href="admin.html">後台</a>
+  </nav>
+
+  <h1>商品後台</h1>
+  <p class="slogan">Add New Cards</p>
+</header>
+
+<section class="admin-section">
+
+  <input id="name" placeholder="商品名稱">
+  <input id="description" placeholder="商品描述">
+  <input id="price" type="number" placeholder="價格">
+  <input id="image_url" placeholder="圖片檔名，例如 product5.jpg">
+
+  <button onclick="addProduct()">新增商品</button>
+
+  <p id="status"></p>
+
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase.js"></script>
+
+<script>
+async function addProduct() {
+  const name = document.getElementById("name").value;
+  const description = document.getElementById("description").value;
+  const price = Number(document.getElementById("price").value);
+  const image_url = document.getElementById("image_url").value;
+  const status = document.getElementById("status");
+
+  const { error } = await supabaseClient
+    .from("products")
+    .insert([
+      {
+        name: name,
+        description: description,
+        price: price,
+        image_url: image_url
+      }
+    ]);
+
+  if (error) {
+    status.textContent = "新增失敗：" + error.message;
+  } else {
+    status.textContent = "新增成功！";
+    document.getElementById("name").value = "";
+    document.getElementById("description").value = "";
+    document.getElementById("price").value = "";
+    document.getElementById("image_url").value = "";
+  }
+}
+</script>
+
+</body>
+</html>
