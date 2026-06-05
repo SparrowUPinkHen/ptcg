@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>競標區 | SparrowUPinkHen PTCG</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<header class="header">
+  <nav class="navbar">
+    <a href="index.html">首頁</a>
+    <a href="products.html">商品</a>
+    <a href="collection.html">收藏展示</a>
+    <a href="auction.html">競標區</a>
+    <a href="about.html">關於我們</a>
+  </nav>
+
+  <h1>競標區</h1>
+  <p class="slogan">Bid For Your Dream Card.</p>
+</header>
+
+<section class="product">
+  <div id="auction-list" class="product-grid"></div>
+</section>
+
+<footer>
+  <p>© SparrowUPinkHen PTCG</p>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase.js"></script>
+
+<script>
+
+async function loadAuctions() {
+
+  const container =
+    document.getElementById("auction-list");
+
+  container.innerHTML = "";
+
+  const { data: auctions, error } =
+    await supabaseClient
+      .from("auctions")
+      .select("*")
+      .eq("is_active", true)
+      .order("created_at", { ascending: false });
+
+  if (error) {
+    console.log(error);
+    container.innerHTML =
+      "<p>競標資料讀取失敗。</p>";
+    return;
+  }
+
+  for (const auction of auctions) {
+
+    const { data: bids } =
+      await supabaseClient
+        .from("bids")
+        .select("*")
+        .eq("auction_id", auction.id)
+        .order("bid_amount", { ascending: false })
+        .limit(1);
+
+    const highestBid =
+      bids && bids.length > 0
+      ? bids[0].bid_amount
+      : auction.starting_bid;
+
+    container.innerHTML += `
+      <div class="product-card auction-card">
+
+        <img src="images/${auction.image_url}"
+             alt="${auction.name}">
+
+        <h3>${auction.name}</h3>
+
+        <p>${auction.description || ""}</p>
+
+        <p>
+          目前最高價：
+          NT$${highestBid}
+        </p>
+
+        <p>
+          結標時間：
+          ${new Date(auction.end_time).toLocaleString("zh-TW")}
+        </p>
+
+        <input
+          id="name-${auction.id}"
+          placeholder="你的名字">
+
+        <input
+          id="line-${auction.id}"
+          placeholder="你的 LINE ID">
+
+        <input
+          id="bid-${auction.id}"
+          type="number"
+          placeholder="出價金額">
+
+        <button
+          onclick="placeBid(${auction.id}, ${highestBid})">
+
+          送出出價
+
+        </button>
+
+        <p
+          id="status-${auction.id}"
+          class="bid-status">
+        </p>
+
+      </div>
+    `;
+  }
+}
+
+async function placeBid(
+  auctionId,
+  currentHighestBid
+) {
+
+  const name =
+    document.getElementById(
+      `name-${auctionId}`
+    ).value;
+
+  const lineId =
+    document.getElementById(
+      `line-${auctionId}`
+    ).value;
+
+  const bidAmount =
+    Number(
+      document.getElementById(
+        `bid-${auctionId}`
+      ).value
+    );
+
+  const status =
+    document.getElementById(
+      `status-${auctionId}`
+    );
+
+  if (!name || !bidAmount) {
+
+    status.textContent =
+      "請填名字和出價金額";
+
+    return;
+  }
+
+  if (bidAmount <= currentHighestBid) {
+
+    status.textContent =
+      "出價必須高於目前最高價";
+
+    return;
+  }
+
+  const { error } =
+    await supabaseClient
+      .from("bids")
+      .insert([
+        {
+          auction_id: auctionId,
+          bidder_name: name,
+          line_id: lineId,
+          bid_amount: bidAmount
+        }
+      ]);
+
+  if (error) {
+
+    console.log(error);
+
+    status.textContent =
+      "出價失敗";
+
+    return;
+  }
+
+  status.textContent =
+    "出價成功！";
+
+  setTimeout(() => {
+    loadAuctions();
+  }, 500);
+}
+
+loadAuctions();
+
+</script>
+
+<!--Start of Tawk.to Script-->
+<script type="text/javascript">
+var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
+(function(){
+var s1=document.createElement("script"),
+s0=document.getElementsByTagName("script")[0];
+s1.async=true;
+s1.src='https://embed.tawk.to/6a1fd42dd0b6e01c2e34bd3e/1jq659koi';
+s1.charset='UTF-8';
+s1.setAttribute('crossorigin','*');
+s0.parentNode.insertBefore(s1,s0);
+})();
+</script>
+<!--End of Tawk.to Script-->
+
+</body>
+</html>
