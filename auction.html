@@ -34,160 +34,164 @@
 <script src="supabase.js"></script>
 
 <script>
+let countdownTimers = [];
+
+function clearCountdownTimers() {
+  countdownTimers.forEach(timer => clearInterval(timer));
+  countdownTimers = [];
+}
+
+function startCountdown(auctionId, endTime) {
+  const countdownElement = document.getElementById(`countdown-${auctionId}`);
+  const button = document.getElementById(`button-${auctionId}`);
+  const bidInput = document.getElementById(`bid-${auctionId}`);
+  const nameInput = document.getElementById(`name-${auctionId}`);
+  const lineInput = document.getElementById(`line-${auctionId}`);
+
+  function update() {
+    const now = new Date().getTime();
+    const target = new Date(endTime).getTime();
+    const distance = target - now;
+
+    if (distance <= 0) {
+      countdownElement.textContent = "🔴 已結標";
+
+      button.disabled = true;
+      button.textContent = "已結標";
+      button.style.opacity = "0.5";
+      button.style.cursor = "not-allowed";
+
+      bidInput.disabled = true;
+      nameInput.disabled = true;
+      lineInput.disabled = true;
+
+      return;
+    }
+
+    const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+    countdownElement.textContent =
+      `⏳ 剩餘時間：${days}天 ${hours}小時 ${minutes}分 ${seconds}秒`;
+  }
+
+  update();
+
+  const timer = setInterval(update, 1000);
+  countdownTimers.push(timer);
+}
 
 async function loadAuctions() {
+  const container = document.getElementById("auction-list");
 
-  const container =
-    document.getElementById("auction-list");
-
+  clearCountdownTimers();
   container.innerHTML = "";
 
-  const { data: auctions, error } =
-    await supabaseClient
-      .from("auctions")
-      .select("*")
-      .eq("is_active", true)
-      .order("created_at", { ascending: false });
+  const { data: auctions, error } = await supabaseClient
+    .from("auctions")
+    .select("*")
+    .eq("is_active", true)
+    .order("created_at", { ascending: false });
 
   if (error) {
     console.log(error);
-    container.innerHTML =
-      "<p>競標資料讀取失敗。</p>";
+    container.innerHTML = "<p>競標資料讀取失敗。</p>";
     return;
   }
 
   for (const auction of auctions) {
-
-    const { data: bids } =
-      await supabaseClient
-        .from("bids")
-        .select("*")
-        .eq("auction_id", auction.id)
-        .order("bid_amount", { ascending: false })
-        .limit(1);
+    const { data: bids } = await supabaseClient
+      .from("bids")
+      .select("*")
+      .eq("auction_id", auction.id)
+      .order("bid_amount", { ascending: false })
+      .limit(1);
 
     const highestBid =
       bids && bids.length > 0
-      ? bids[0].bid_amount
-      : auction.starting_bid;
+        ? bids[0].bid_amount
+        : auction.starting_bid;
 
     container.innerHTML += `
       <div class="product-card auction-card">
-
-        <img src="images/${auction.image_url}"
-             alt="${auction.name}">
+        <img src="images/${auction.image_url}" alt="${auction.name}">
 
         <h3>${auction.name}</h3>
 
         <p>${auction.description || ""}</p>
 
-        <p>
-          目前最高價：
-          NT$${highestBid}
+        <p>目前最高價：NT$${highestBid}</p>
+
+        <p>結標時間：${new Date(auction.end_time).toLocaleString("zh-TW")}</p>
+
+        <p id="countdown-${auction.id}" class="bid-status">
+          計算中...
         </p>
 
-        <p>
-          結標時間：
-          ${new Date(auction.end_time).toLocaleString("zh-TW")}
-        </p>
+        <input id="name-${auction.id}" placeholder="你的名字">
 
-        <input
-          id="name-${auction.id}"
-          placeholder="你的名字">
+        <input id="line-${auction.id}" placeholder="你的 LINE ID">
 
-        <input
-          id="line-${auction.id}"
-          placeholder="你的 LINE ID">
-
-        <input
-          id="bid-${auction.id}"
-          type="number"
-          placeholder="出價金額">
+        <input id="bid-${auction.id}" type="number" placeholder="出價金額">
 
         <button
-          onclick="placeBid(${auction.id}, ${highestBid})">
-
+          id="button-${auction.id}"
+          onclick="placeBid(${auction.id}, ${highestBid}, '${auction.end_time}')">
           送出出價
-
         </button>
 
-        <p
-          id="status-${auction.id}"
-          class="bid-status">
-        </p>
-
+        <p id="status-${auction.id}" class="bid-status"></p>
       </div>
     `;
+
+    startCountdown(auction.id, auction.end_time);
   }
 }
 
-async function placeBid(
-  auctionId,
-  currentHighestBid
-) {
+async function placeBid(auctionId, currentHighestBid, endTime) {
+  const now = new Date().getTime();
+  const target = new Date(endTime).getTime();
+  const status = document.getElementById(`status-${auctionId}`);
 
-  const name =
-    document.getElementById(
-      `name-${auctionId}`
-    ).value;
+  if (now >= target) {
+    status.textContent = "競標已結束，不能再出價。";
+    return;
+  }
 
-  const lineId =
-    document.getElementById(
-      `line-${auctionId}`
-    ).value;
-
-  const bidAmount =
-    Number(
-      document.getElementById(
-        `bid-${auctionId}`
-      ).value
-    );
-
-  const status =
-    document.getElementById(
-      `status-${auctionId}`
-    );
+  const name = document.getElementById(`name-${auctionId}`).value;
+  const lineId = document.getElementById(`line-${auctionId}`).value;
+  const bidAmount = Number(document.getElementById(`bid-${auctionId}`).value);
 
   if (!name || !bidAmount) {
-
-    status.textContent =
-      "請填名字和出價金額";
-
+    status.textContent = "請填名字和出價金額";
     return;
   }
 
   if (bidAmount <= currentHighestBid) {
-
-    status.textContent =
-      "出價必須高於目前最高價";
-
+    status.textContent = "出價必須高於目前最高價";
     return;
   }
 
-  const { error } =
-    await supabaseClient
-      .from("bids")
-      .insert([
-        {
-          auction_id: auctionId,
-          bidder_name: name,
-          line_id: lineId,
-          bid_amount: bidAmount
-        }
-      ]);
+  const { error } = await supabaseClient
+    .from("bids")
+    .insert([
+      {
+        auction_id: auctionId,
+        bidder_name: name,
+        line_id: lineId,
+        bid_amount: bidAmount
+      }
+    ]);
 
   if (error) {
-
     console.log(error);
-
-    status.textContent =
-      "出價失敗";
-
+    status.textContent = "出價失敗";
     return;
   }
 
-  status.textContent =
-    "出價成功！";
+  status.textContent = "出價成功！";
 
   setTimeout(() => {
     loadAuctions();
@@ -195,7 +199,6 @@ async function placeBid(
 }
 
 loadAuctions();
-
 </script>
 
 <!--Start of Tawk.to Script-->
