@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
@@ -39,9 +40,14 @@
 <script src="supabase.js"></script>
 
 <script>
+
 function updateCartCount() {
-  const cart = JSON.parse(localStorage.getItem("cart")) || [];
-  const count = document.getElementById("cart-count");
+
+  const cart =
+    JSON.parse(localStorage.getItem("cart")) || [];
+
+  const count =
+    document.getElementById("cart-count");
 
   if (count) {
     count.textContent = cart.length;
@@ -49,7 +55,9 @@ function updateCartCount() {
 }
 
 function addToCart(card) {
-  const cart = JSON.parse(localStorage.getItem("cart")) || [];
+
+  const cart =
+    JSON.parse(localStorage.getItem("cart")) || [];
 
   cart.push({
     name: card.name,
@@ -59,46 +67,71 @@ function addToCart(card) {
     type: "裸卡"
   });
 
-  localStorage.setItem("cart", JSON.stringify(cart));
+  localStorage.setItem(
+    "cart",
+    JSON.stringify(cart)
+  );
+
   updateCartCount();
 
   alert("已加入購物車！");
 }
 
 async function loadRawProducts() {
-  const container = document.getElementById("raw-list");
+
+  const container =
+    document.getElementById("raw-list");
 
   container.innerHTML = "";
 
-  const { data, error } = await supabaseClient
-    .from("raw_products")
-    .select("*")
-    .order("created_at", { ascending: false });
+  const { data, error } =
+    await supabaseClient
+      .from("raw_products")
+      .select("*")
+      .order("created_at", { ascending: false });
 
   if (error) {
+
     console.log(error);
-    container.innerHTML = "<p>裸卡資料讀取失敗</p>";
+
+    container.innerHTML =
+      "<p>裸卡資料讀取失敗</p>";
+
     return;
   }
 
   window.rawCardsData = data;
 
   data.forEach((card, index) => {
+
     const priceHTML =
       card.price > 0
-        ? `<strong>NT$${card.price}</strong>`
-        : "";
+      ? `<strong>NT$${card.price}</strong>`
+      : "";
 
     container.innerHTML += `
       <div class="product-card">
-        <img src="images/${card.image_url}" alt="${card.name}">
+
+        <img
+          src="images/${card.image_url}"
+          alt="${card.name}">
+
         <h3>${card.name}</h3>
+
         <p>${card.description || ""}</p>
+
         ${priceHTML}
 
-        <button class="add-cart-btn" onclick="addToCart(window.rawCardsData[${index}])">
-          加入購物車
+        <button
+          class="add-cart-btn"
+          onclick="addToCart(window.rawCardsData[${index}])">
+
+          <img
+            src="images/cart-icon.png"
+            alt="加入購物車">
+
         </button>
+
       </div>
     `;
   });
@@ -107,7 +140,9 @@ async function loadRawProducts() {
 }
 
 loadRawProducts();
+
 </script>
 
 </body>
 </html>
+

@@ -80,6 +80,7 @@ async function loadProducts() {
   }
 
   container.innerHTML = "";
+  window.productsData = data;
 
   data.forEach((product, index) => {
     const priceHTML =
@@ -95,17 +96,16 @@ async function loadProducts() {
         ${priceHTML}
 
         <button class="add-cart-btn" onclick="addToCart(window.productsData[${index}])">
-          加入購物車
+          <img src="images/cart-icon.png" alt="加入購物車">
         </button>
       </div>
     `;
   });
 
-  window.productsData = data;
+  updateCartCount();
 }
 
 loadProducts();
-updateCartCount();
 </script>
 
 <!--Start of Tawk.to Script-->
