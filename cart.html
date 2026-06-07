@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>購物車 | SparrowUPinkHen PTCG</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<header class="header">
+  <nav class="navbar">
+    <a href="index.html">首頁</a>
+    <a href="gradedcard.html">鑑定卡區</a>
+    <a href="rawcard.html">裸卡區</a>
+    <a href="cart.html">購物車</a>
+    <a href="auction.html">競標區</a>
+    <a href="about.html">關於我們</a>
+  </nav>
+
+  <h1>購物車</h1>
+  <p class="slogan">Confirm Your Order.</p>
+</header>
+
+<section class="cart-section">
+
+  <div id="cart-items"></div>
+
+  <h2 id="total-price"></h2>
+
+  <h2>聯絡資料</h2>
+
+  <input id="customer_name" placeholder="姓名">
+  <input id="email" placeholder="Email">
+  <input id="phone" placeholder="電話">
+  <input id="line_id" placeholder="LINE ID（可選）">
+  <textarea id="note" placeholder="備註"></textarea>
+
+  <button onclick="submitOrder()">送出訂單</button>
+
+  <p id="status"></p>
+
+</section>
+
+<footer>
+  <p>© SparrowUPinkHen PTCG</p>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase.js"></script>
+
+<script>
+function loadCart() {
+  const cartItems = JSON.parse(localStorage.getItem("cart")) || [];
+  const cartBox = document.getElementById("cart-items");
+  const totalBox = document.getElementById("total-price");
+
+  if (cartItems.length === 0) {
+    cartBox.innerHTML = "<p>購物車目前是空的。</p>";
+    totalBox.textContent = "";
+    return;
+  }
+
+  cartBox.innerHTML = "";
+
+  let total = 0;
+
+  cartItems.forEach((item, index) => {
+    const price = Number(item.price) || 0;
+    total += price;
+
+    const priceText =
+      price > 0
+        ? `NT$${price}`
+        : "價格請洽詢";
+
+    cartBox.innerHTML += `
+      <div class="cart-item">
+        <img src="images/${item.image_url}" alt="${item.name}">
+
+        <div class="cart-info">
+          <h3>${item.name}</h3>
+          <p>${item.type || ""}</p>
+          <p>${item.description || ""}</p>
+          <strong>${priceText}</strong>
+        </div>
+
+        <button onclick="removeItem(${index})">移除</button>
+      </div>
+    `;
+  });
+
+  totalBox.textContent =
+    total > 0
+      ? `總金額：NT$${total}`
+      : "總金額：請洽詢";
+}
+
+function removeItem(index) {
+  const cartItems = JSON.parse(localStorage.getItem("cart")) || [];
+  cartItems.splice(index, 1);
+  localStorage.setItem("cart", JSON.stringify(cartItems));
+  loadCart();
+}
+
+async function submitOrder() {
+  const cartItems = JSON.parse(localStorage.getItem("cart")) || [];
+  const status = document.getElementById("status");
+
+  if (cartItems.length === 0) {
+    status.textContent = "購物車是空的。";
+    return;
+  }
+
+  const customer_name = document.getElementById("customer_name").value;
+  const email = document.getElementById("email").value;
+  const phone = document.getElementById("phone").value;
+  const line_id = document.getElementById("line_id").value;
+  const note = document.getElementById("note").value;
+
+  if (!customer_name || (!email && !phone && !line_id)) {
+    status.textContent = "請填姓名，並至少填 Email、電話或 LINE 其中一項。";
+    return;
+  }
+
+  const order_items = cartItems
+    .map(item => {
+      const price = Number(item.price) || 0;
+      const priceText = price > 0 ? `NT$${price}` : "價格請洽詢";
+      return `${item.type || ""}｜${item.name}｜${priceText}`;
+    })
+    .join("；");
+
+  const { error } = await supabaseClient
+    .from("orders")
+    .insert([
+      {
+        customer_name,
+        email,
+        phone,
+        line_id,
+        note,
+        order_items
+      }
+    ]);
+
+  if (error) {
+    console.log(error);
+    status.textContent = "訂單送出失敗。";
+    return;
+  }
+
+  localStorage.removeItem("cart");
+  status.textContent = "訂單已送出！我會盡快與你聯繫。";
+  loadCart();
+}
+
+loadCart();
+</script>
+
+</body>
+</html>

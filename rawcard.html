@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>鑑定卡區 | SparrowUPinkHen PTCG</title>
+  <title>裸卡區 | SparrowUPinkHen PTCG</title>
   <link rel="stylesheet" href="style.css">
 </head>
 
@@ -23,12 +23,12 @@
     </a>
   </nav>
 
-  <h1>鑑定卡區</h1>
-  <p class="slogan">Find Your Dream Card.</p>
+  <h1>裸卡區</h1>
+  <p class="slogan">Raw Cards Collection</p>
 </header>
 
 <section class="product">
-  <div id="product-list" class="product-grid"></div>
+  <div id="raw-list" class="product-grid"></div>
 </section>
 
 <footer>
@@ -48,15 +48,15 @@ function updateCartCount() {
   }
 }
 
-function addToCart(product) {
+function addToCart(card) {
   const cart = JSON.parse(localStorage.getItem("cart")) || [];
 
   cart.push({
-    name: product.name,
-    description: product.description,
-    price: product.price,
-    image_url: product.image_url,
-    type: "鑑定卡"
+    name: card.name,
+    description: card.description,
+    price: card.price,
+    image_url: card.image_url,
+    type: "裸卡"
   });
 
   localStorage.setItem("cart", JSON.stringify(cart));
@@ -65,62 +65,49 @@ function addToCart(product) {
   alert("已加入購物車！");
 }
 
-async function loadProducts() {
-  const container = document.getElementById("product-list");
+async function loadRawProducts() {
+  const container = document.getElementById("raw-list");
+
+  container.innerHTML = "";
 
   const { data, error } = await supabaseClient
-    .from("products")
+    .from("raw_products")
     .select("*")
     .order("created_at", { ascending: false });
 
   if (error) {
     console.log(error);
-    container.innerHTML = "<p>商品讀取失敗，請稍後再試。</p>";
+    container.innerHTML = "<p>裸卡資料讀取失敗</p>";
     return;
   }
 
-  container.innerHTML = "";
+  window.rawCardsData = data;
 
-  data.forEach((product, index) => {
+  data.forEach((card, index) => {
     const priceHTML =
-      product.price && product.price > 0
-        ? `<strong>NT$${product.price}</strong>`
+      card.price > 0
+        ? `<strong>NT$${card.price}</strong>`
         : "";
 
     container.innerHTML += `
       <div class="product-card">
-        <img src="images/${product.image_url}" alt="${product.name}">
-        <h3>${product.name}</h3>
-        <p>${product.description || ""}</p>
+        <img src="images/${card.image_url}" alt="${card.name}">
+        <h3>${card.name}</h3>
+        <p>${card.description || ""}</p>
         ${priceHTML}
 
-        <button class="add-cart-btn" onclick="addToCart(window.productsData[${index}])">
+        <button class="add-cart-btn" onclick="addToCart(window.rawCardsData[${index}])">
           加入購物車
         </button>
       </div>
     `;
   });
 
-  window.productsData = data;
+  updateCartCount();
 }
 
-loadProducts();
-updateCartCount();
+loadRawProducts();
 </script>
-
-<!--Start of Tawk.to Script-->
-<script type="text/javascript">
-var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
-(function(){
-var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
-s1.async=true;
-s1.src='https://embed.tawk.to/6a1fd42dd0b6e01c2e34bd3e/1jq659koi';
-s1.charset='UTF-8';
-s1.setAttribute('crossorigin','*');
-s0.parentNode.insertBefore(s1,s0);
-})();
-</script>
-<!--End of Tawk.to Script-->
 
 </body>
 </html>
