@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>裸卡區 | SparrowUPinkHen PTCG</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<header class="header">
+  <nav class="navbar">
+    <a href="index.html">首頁</a>
+    <a href="gradedcard.html">鑑定卡區</a>
+    <a href="rowcard.html">裸卡區</a>
+    <a href="auction.html">競標區</a>
+    <a href="about.html">關於我們</a>
+  </nav>
+
+  <h1>裸卡區</h1>
+  <p class="slogan">Raw Cards Collection</p>
+</header>
+
+<section class="product">
+  <div id="raw-list" class="product-grid"></div>
+</section>
+
+<footer>
+  <p>© SparrowUPinkHen PTCG</p>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase.js"></script>
+
+<script>
+async function loadRawProducts() {
+
+  const container =
+    document.getElementById("raw-list");
+
+  container.innerHTML = "";
+
+  const { data, error } =
+    await supabaseClient
+      .from("raw_products")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+  if (error) {
+    console.log(error);
+    container.innerHTML =
+      "<p>裸卡資料讀取失敗</p>";
+    return;
+  }
+
+  data.forEach(card => {
+
+    const priceHTML =
+      card.price > 0
+      ? `<strong>NT$${card.price}</strong>`
+      : "";
+
+    container.innerHTML += `
+      <div class="product-card">
+
+        <img src="images/${card.image_url}"
+             alt="${card.name}">
+
+        <h3>${card.name}</h3>
+
+        <p>${card.description || ""}</p>
+
+        ${priceHTML}
+
+      </div>
+    `;
+  });
+}
+
+loadRawProducts();
+</script>
+
+</body>
+</html>

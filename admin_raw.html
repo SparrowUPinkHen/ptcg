@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>裸卡管理後台</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<header class="header">
+  <h1>裸卡管理後台</h1>
+  <p class="slogan">Add Raw Cards</p>
+</header>
+
+<section class="admin-section">
+
+  <input
+    id="name"
+    placeholder="裸卡名稱">
+
+  <input
+    id="description"
+    placeholder="商品描述">
+
+  <input
+    id="price"
+    type="number"
+    placeholder="價格（沒有可填0）">
+
+  <input
+    id="image"
+    placeholder="圖片檔名（例如 raw1.jpg）">
+
+  <button onclick="addProduct()">
+    新增裸卡
+  </button>
+
+  <p id="status"></p>
+
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase.js"></script>
+
+<script>
+
+async function addProduct() {
+
+  const name =
+    document.getElementById("name").value;
+
+  const description =
+    document.getElementById("description").value;
+
+  const price =
+    Number(
+      document.getElementById("price").value
+    );
+
+  const image_url =
+    document.getElementById("image").value;
+
+  const status =
+    document.getElementById("status");
+
+  const { error } =
+    await supabaseClient
+      .from("raw_products")
+      .insert([
+        {
+          name,
+          description,
+          price,
+          image_url
+        }
+      ]);
+
+  if (error) {
+
+    console.log(error);
+
+    status.textContent =
+      "新增失敗";
+
+    return;
+  }
+
+  status.textContent =
+    "新增成功！";
+
+  document.getElementById("name").value = "";
+  document.getElementById("description").value = "";
+  document.getElementById("price").value = "";
+  document.getElementById("image").value = "";
+}
+
+</script>
+
+</body>
+</html>

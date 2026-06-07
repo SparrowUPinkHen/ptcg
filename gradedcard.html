@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>商品 | SparrowUPinkHen PTCG</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<header class="header">
+  <nav class="navbar">
+    <a href="index.html">首頁</a>
+    <a href="gradedcard.html">鑑定卡區</a>
+    <a href="rowcard.html">裸卡區</a>
+    <a href="auction.html">競標區</a>
+    <a href="about.html">關於我們</a>
+  </nav>
+
+  <h1>商品列表</h1>
+  <p class="slogan">Find Your Dream Card.</p>
+</header>
+
+<section class="product">
+  <div id="product-list" class="product-grid"></div>
+</section>
+
+<footer>
+  <p>© SparrowUPinkHen PTCG</p>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase.js"></script>
+
+<script>
+async function loadProducts() {
+  const container = document.getElementById("product-list");
+
+  const { data, error } = await supabaseClient
+    .from("products")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.log(error);
+    container.innerHTML = "<p>商品讀取失敗，請稍後再試。</p>";
+    return;
+  }
+
+  container.innerHTML = "";
+
+  data.forEach(product => {
+    const priceHTML =
+      product.price && product.price > 0
+        ? `<strong>NT$${product.price}</strong>`
+        : "";
+
+    container.innerHTML += `
+      <div class="product-card">
+        <img src="images/${product.image_url}" alt="${product.name}">
+        <h3>${product.name}</h3>
+        <p>${product.description}</p>
+        ${priceHTML}
+      </div>
+    `;
+  });
+}
+
+loadProducts();
+</script>
+
+<!--Start of Tawk.to Script-->
+<script type="text/javascript">
+var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
+(function(){
+var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
+s1.async=true;
+s1.src='https://embed.tawk.to/6a1fd42dd0b6e01c2e34bd3e/1jq659koi';
+s1.charset='UTF-8';
+s1.setAttribute('crossorigin','*');
+s0.parentNode.insertBefore(s1,s0);
+})();
+</script>
+<!--End of Tawk.to Script-->
+
+</body>
+</html>
