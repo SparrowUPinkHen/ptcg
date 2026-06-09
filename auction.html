@@ -114,6 +114,7 @@ async function loadAuctions() {
         ? bids[0].bid_amount
         : auction.starting_bid;
 
+    // 🎯 這裡微調了 onclick，把商品名稱 auction.name 傳進去，通知時才看得到名字
     container.innerHTML += `
       <div class="product-card auction-card">
         <img src="images/${auction.image_url}" alt="${auction.name}">
@@ -138,7 +139,7 @@ async function loadAuctions() {
 
         <button
           id="button-${auction.id}"
-          onclick="placeBid(${auction.id}, ${highestBid}, '${auction.end_time}')">
+          onclick="placeBid(${auction.id}, ${highestBid}, '${auction.end_time}', '${auction.name.replace(/'/g, "\\'")}')">
           送出出價
         </button>
 
@@ -150,7 +151,7 @@ async function loadAuctions() {
   }
 }
 
-async function placeBid(auctionId, currentHighestBid, endTime) {
+async function placeBid(auctionId, currentHighestBid, endTime, auctionName) {
   const now = new Date().getTime();
   const target = new Date(endTime).getTime();
   const status = document.getElementById(`status-${auctionId}`);
@@ -164,25 +165,22 @@ async function placeBid(auctionId, currentHighestBid, endTime) {
   const lineId = document.getElementById(`line-${auctionId}`).value.trim();
   const bidAmount = Number(document.getElementById(`bid-${auctionId}`).value);
 
-  // ⚡ 防禦1：基本空白檢查
   if (!name || !lineId || !bidAmount) {
     status.textContent = "❌ 請完整填寫姓名、LINE ID 和出價金額！";
     alert("🚨 填寫不完整！請務必留下您的姓名與 LINE ID 唷！");
     return;
   }
 
-  // ⚡ 防禦2：LINE ID 長度過濾（一般至少4字）
   if (lineId.length < 4) {
     status.textContent = "❌ LINE ID 格式不正確（太短）";
     alert("🚨 填寫失敗！請輸入正確的 LINE ID，字數過少將無法核對！");
     return;
   }
 
-  // ⚡ 防禦3：檢查 LINE ID 是否包含中文字（LINE ID 不可能長中文）
   const chineseRegex = /[\u4e00-\u9fa5]/;
   if (chineseRegex.test(lineId)) {
     status.textContent = "❌ LINE ID 不能含有中文字";
-    alert("🚨 填寫失敗！LINE ID 不可能含有中文字，請填寫正確的 ID 或電話號碼！");
+    alert("🚨 填寫失敗！LINE ID 不可能含有中文字，請填寫正確的 ID！");
     return;
   }
 
@@ -191,16 +189,15 @@ async function placeBid(auctionId, currentHighestBid, endTime) {
     return;
   }
 
-  // ⚡ 防禦4：出價彈窗法律震懾宣導
   const confirmBid = confirm(
     `📢 【 SparrowUPinkHen 出價確認 】\n\n` +
     `您確定要以 NT$ ${bidAmount} 進行競標嗎？\n` +
-    `⚠️ 請注意：出價即代表購買意願。惡意棄單、亂填 LINE ID 擾亂拍賣、聯絡不到人者，本店將直接公開姓名/黑名單並依法追究相關損失！`
+    `⚠️ 請注意：出價即代表購買意願。惡意棄單、亂填 LINE ID 聯絡不到人者，本店將直接公開黑名單並依法追究相關損失！`
   );
   
   if (!confirmBid) {
     status.textContent = "已取消出價";
-    return; // 客人點取消就不送出
+    return;
   }
 
   const { error } = await supabaseClient
@@ -222,6 +219,29 @@ async function placeBid(auctionId, currentHighestBid, endTime) {
 
   status.textContent = "出價成功！";
 
+  // 🔔 這裡幫你把 Discord 競標警報器裝回來了！
+  // ⚡ 記得把下面這行引號裡面的中文換成你的 Discord Webhook 網址！
+  const discordWebhookUrl = "https://discord.com/api/webhooks/1513961457518121101/dryBxbx0NsLfipbhNN4NIpeEnjv6wQM5V0RYjSB707y9p4eAoUhouGQXtbYRXpY7lhVK"; 
+  
+  if (discordWebhookUrl && discordWebhookUrl !== "https://discord.com/api/webhooks/1513961457518121101/dryBxbx0NsLfipbhNN4NIpeEnjv6wQM5V0RYjSB707y9p4eAoUhouGQXtbYRXpY7lhVK") {
+    const messageData = {
+      username: "SparrowUPinkHen 拍賣官",
+      content: `🚨 **【競標區有新出價啦！】** 🚨\n` +
+               `🎴 **競標商品**: ${auctionName}\n` +
+               `👤 **買家姓名**: ${name}\n` +
+               `💬 **LINE ID**: ${lineId}\n` +
+               `💰 **出價金額**: NT$ ${bidAmount}\n` +
+               `⏰ **出價時間**: ${new Date().toLocaleString("zh-TW")}\n` +
+               `-----------------------------------------`
+    };
+
+    fetch(discordWebhookUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(messageData)
+    }).catch(err => console.error("Discord 通知發送失敗:", err));
+  }
+
   setTimeout(() => {
     loadAuctions();
   }, 500);
@@ -230,7 +250,6 @@ async function placeBid(auctionId, currentHighestBid, endTime) {
 loadAuctions();
 </script>
 
-<!--Start of Tawk.to Script-->
 <script type="text/javascript">
 var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
 (function(){
@@ -243,7 +262,5 @@ s1.setAttribute('crossorigin','*');
 s0.parentNode.insertBefore(s1,s0);
 })();
 </script>
-<!--End of Tawk.to Script-->
-
 </body>
 </html>

@@ -119,29 +119,25 @@ async function submitOrder() {
   const email = document.getElementById("email").value.trim();
   const note = document.getElementById("note").value;
 
-  // ⚡ 防禦1：姓名和 LINE ID 必填檢查
   if (!customer_name || !line_id) {
     status.textContent = "❌ 請完整填寫姓名與 LINE ID！";
     alert("🚨 填寫不完整！為了後續聯繫交貨，請務必留下您的姓名與 LINE ID 唷！");
     return;
   }
 
-  // ⚡ 防禦2：LINE ID 長度過濾
   if (line_id.length < 4) {
     status.textContent = "❌ LINE ID 格式不正確（太短）";
     alert("🚨 訂單送出失敗！請輸入正確的 LINE ID 唷！");
     return;
   }
 
-  // ⚡ 防禦3：檢查 LINE ID 是否包含中文字
   const chineseRegex = /[\u4e00-\u9fa5]/;
   if (chineseRegex.test(line_id)) {
     status.textContent = "❌ LINE ID 不能含有中文字";
-    alert("🚨 訂單送出失敗！LINE ID 不可能含有中文字，請填寫正確的 ID 或電話號碼！");
+    alert("🚨 訂單送出失敗！LINE ID 不可能含有中文字，請填寫正確的 ID！");
     return;
   }
 
-  // ⚡ 防禦4：下單法律震懾宣導
   const confirmOrder = confirm(
     `📢 【 SparrowUPinkHen 下單確認 】\n\n` +
     `確定要送出訂單購買購物車內的卡片嗎？\n` +
@@ -180,8 +176,32 @@ async function submitOrder() {
     return;
   }
 
-  localStorage.removeItem("cart");
   status.textContent = "訂單已送出！我會盡快與你聯繫。";
+
+  // 🔔 這裡幫你把 Discord 購物車警報器裝回來了！
+  // ⚡ 記得把下面這行引號裡面的中文換成你的 Discord Webhook 網址！（跟上面用同一個網址即可）
+  const discordWebhookUrl = "https://discord.com/api/webhooks/1513961457518121101/dryBxbx0NsLfipbhNN4NIpeEnjv6wQM5V0RYjSB707y9p4eAoUhouGQXtbYRXpY7lhVK"; 
+  
+  if (discordWebhookUrl && discordWebhookUrl !== "https://discord.com/api/webhooks/1513961457518121101/dryBxbx0NsLfipbhNN4NIpeEnjv6wQM5V0RYjSB707y9p4eAoUhouGQXtbYRXpY7lhVK") {
+    const messageData = {
+      username: "SparrowUPinkHen 收銀機",
+      content: `🛒 **【一般商品區有新訂單啦！】** 🛒\n` +
+               `👤 **買家姓名**: ${customer_name}\n` +
+               `💬 **LINE ID**: ${line_id}\n` +
+               `📦 **購買明細**: \n\`\`\`${order_items}\`\`\`\n` +
+               `📝 **買家備註**: ${note || "無"}\n` +
+               `⏰ **下單時間**: ${new Date().toLocaleString("zh-TW")}\n` +
+               `-----------------------------------------`
+    };
+
+    fetch(discordWebhookUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(messageData)
+    }).catch(err => console.error("Discord 通知發送失敗:", err));
+  }
+
+  localStorage.removeItem("cart");
   loadCart();
 }
 
