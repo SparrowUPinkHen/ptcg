@@ -130,11 +130,11 @@ async function loadAuctions() {
           計算中...
         </p>
 
-        <input id="name-${auction.id}" placeholder="你的名字">
+        <input id="name-${auction.id}" placeholder="你的名字(必填)">
 
-        <input id="line-${auction.id}" placeholder="你的 LINE ID">
+        <input id="line-${auction.id}" placeholder="你的 LINE ID(必填)">
 
-        <input id="bid-${auction.id}" type="number" placeholder="出價金額">
+        <input id="bid-${auction.id}" type="number" placeholder="出價金額(必填)">
 
         <button
           id="button-${auction.id}"
@@ -160,12 +160,15 @@ async function placeBid(auctionId, currentHighestBid, endTime) {
     return;
   }
 
-  const name = document.getElementById(`name-${auctionId}`).value;
-  const lineId = document.getElementById(`line-${auctionId}`).value;
+  // 🎯 抓取數值並清除前後空格
+  const name = document.getElementById(`name-${auctionId}`).value.trim();
+  const lineId = document.getElementById(`line-${auctionId}`).value.trim();
   const bidAmount = Number(document.getElementById(`bid-${auctionId}`).value);
 
-  if (!name || !bidAmount) {
-    status.textContent = "請填名字和出價金額";
+  // ⚡ 終極防呆：任何一欄沒填寫，直接攔截，不准寫入 Supabase
+  if (!name || !lineId || !bidAmount) {
+    status.textContent = "❌ 請完整填寫姓名、LINE ID 和出價金額！";
+    alert("🚨 填寫不完整！請務必留下您的姓名與 LINE ID 唷！");
     return;
   }
 
@@ -201,7 +204,6 @@ async function placeBid(auctionId, currentHighestBid, endTime) {
 loadAuctions();
 </script>
 
-<!--Start of Tawk.to Script-->
 <script type="text/javascript">
 var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
 (function(){
@@ -214,7 +216,5 @@ s1.setAttribute('crossorigin','*');
 s0.parentNode.insertBefore(s1,s0);
 })();
 </script>
-<!--End of Tawk.to Script-->
-
 </body>
 </html>
