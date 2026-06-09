@@ -96,16 +96,12 @@ body {
   padding: 50px 40px;
 }
 
+/* 🎯 完美二合一：維持一排 4 張，並成功解鎖「整體置中」魔法！ */
 .product-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 25px;
-}
-
-.product-grid {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 20px;
+  justify-content: center;
 }
 
 .product-card {
@@ -124,24 +120,12 @@ body {
 }
 
 .product-card img {
-
   width: 100%;
-
   aspect-ratio: 3 / 4;
-
   object-fit: contain;
-
-  background:
-  radial-gradient(
-    circle,
-    #1a1a1a,
-    #0a0a0a
-  );
-
+  background: radial-gradient(circle, #1a1a1a, #0a0a0a);
   padding: 4px;
-
   box-sizing: border-box;
-
   transition: 0.3s;
 }
 
@@ -419,110 +403,86 @@ footer {
 /* Responsive */
 
 /* 平板 */
-
 @media (max-width:1000px){
-
   .product-grid{
     grid-template-columns:repeat(3,1fr);
     gap:15px;
   }
-
 }
 
 /* 手機 */
-
 @media (max-width:768px){
-
-  .product{
+  .product {
     padding:20px 8px;
   }
-
   .product-grid{
     grid-template-columns:repeat(2,1fr);
     gap:12px;
   }
-
   .product-card{
     border-radius:14px;
   }
-
   .product-card img{
     padding:2px;
   }
-
   .product-card h3{
     font-size:15px;
     line-height:1.2;
     padding:8px;
   }
-
   .product-card p{
     font-size:13px;
     line-height:1.25;
     padding:0 8px 8px;
   }
-
   .product-card strong{
     font-size:14px;
     padding:0 8px 8px;
   }
-
   .add-cart-btn{
     width:36px;
     height:36px;
     right:8px;
     bottom:8px;
   }
-
 }
 
 /* 超小手機 */
-
 @media (max-width:480px){
-
   .product-grid{
     grid-template-columns:repeat(2,1fr);
     gap:10px;
   }
-
   .product-card h3{
     font-size:14px;
   }
-
   .product-card p{
     font-size:12px;
   }
-
 }
 
-/* ⚙️ 關鍵修正：下面這段原本被錯誤塞進 768px 肚子裡，現在幫你獨立出來，並補上了關閉的括號！ */
+/* 手機版標頭與字體獨立區 */
 @media (max-width: 768px) {
   .header h1 {
     font-size: 30px;
   }
-
   .logo {
     width: 110px;
     height: 110px;
   }
-
   .slogan {
     font-size: 19px;
   }
-
   .hero-text h2 {
     font-size: 21px;
   }
-
   .about-card {
     font-size: 16px;
   }
-
   .cart-item {
     flex-direction: column;
     align-items: flex-start;
   }
-
   .cart-item img {
     width: 100%;
     height: auto;
