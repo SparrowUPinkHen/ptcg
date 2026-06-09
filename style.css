@@ -231,12 +231,16 @@ body {
   padding: 60px 20px;
 }
 
+/* 🎯 換成這段：加上兩端對齊，並針對手機版微調行高與字距 */
 .about-card {
   max-width: 900px;
   margin: auto;
-  line-height: 2;
+  line-height: 1.7;        /* 微調行高，手機看更緊湊舒服 */
+  letter-spacing: 0.5px;   /* 讓中文字之間有一點點微小的呼吸空間 */
   color: white;
   font-size: 18px;
+  text-align: justify;     /* ⚡ 關鍵：左右兩端對齊，消滅奇怪空格 */
+  word-break: break-all;   /* ⚡ 關鍵：強迫中英文完美斷行 */
 }
 
 .about-card h2 {
