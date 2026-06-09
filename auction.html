@@ -114,7 +114,6 @@ async function loadAuctions() {
         ? bids[0].bid_amount
         : auction.starting_bid;
 
-    // 🎯 這裡微調了 onclick，把商品名稱 auction.name 傳進去，通知時才看得到名字
     container.innerHTML += `
       <div class="product-card auction-card">
         <img src="images/${auction.image_url}" alt="${auction.name}">
@@ -219,28 +218,25 @@ async function placeBid(auctionId, currentHighestBid, endTime, auctionName) {
 
   status.textContent = "出價成功！";
 
-  // 🔔 這裡幫你把 Discord 競標警報器裝回來了！
-  // ⚡ 記得把下面這行引號裡面的中文換成你的 Discord Webhook 網址！
+  // 🔔 修正後的 Discord 競標警報器（移除了會自我排擠的 bug 判斷式）
   const discordWebhookUrl = "https://discord.com/api/webhooks/1513961457518121101/dryBxbx0NsLfipbhNN4NIpeEnjv6wQM5V0RYjSB707y9p4eAoUhouGQXtbYRXpY7lhVK"; 
   
-  if (discordWebhookUrl && discordWebhookUrl !== "https://discord.com/api/webhooks/1513961457518121101/dryBxbx0NsLfipbhNN4NIpeEnjv6wQM5V0RYjSB707y9p4eAoUhouGQXtbYRXpY7lhVK") {
-    const messageData = {
-      username: "SparrowUPinkHen 拍賣官",
-      content: `🚨 **【競標區有新出價啦！】** 🚨\n` +
-               `🎴 **競標商品**: ${auctionName}\n` +
-               `👤 **買家姓名**: ${name}\n` +
-               `💬 **LINE ID**: ${lineId}\n` +
-               `💰 **出價金額**: NT$ ${bidAmount}\n` +
-               `⏰ **出價時間**: ${new Date().toLocaleString("zh-TW")}\n` +
-               `-----------------------------------------`
-    };
+  const messageData = {
+    username: "SparrowUPinkHen 拍賣官",
+    content: `🚨 **【競標區有新出價啦！】** 🚨\n` +
+             `🎴 **競標商品**: ${auctionName}\n` +
+             `👤 **買家姓名**: ${name}\n` +
+             `💬 **LINE ID**: ${lineId}\n` +
+             `💰 **出價金額**: NT$ ${bidAmount}\n` +
+             `⏰ **出價時間**: ${new Date().toLocaleString("zh-TW")}\n` +
+             `-----------------------------------------`
+  };
 
-    fetch(discordWebhookUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(messageData)
-    }).catch(err => console.error("Discord 通知發送失敗:", err));
-  }
+  fetch(discordWebhookUrl, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(messageData)
+  }).catch(err => console.error("Discord 通知發送失敗:", err));
 
   setTimeout(() => {
     loadAuctions();

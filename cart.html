@@ -178,28 +178,25 @@ async function submitOrder() {
 
   status.textContent = "訂單已送出！我會盡快與你聯繫。";
 
-  // 🔔 這裡幫你把 Discord 購物車警報器裝回來了！
-  // ⚡ 記得把下面這行引號裡面的中文換成你的 Discord Webhook 網址！（跟上面用同一個網址即可）
+  // 🔔 購物車發送 Discord 通知（已拔除問題判斷式，保證通暢）
   const discordWebhookUrl = "https://discord.com/api/webhooks/1513961457518121101/dryBxbx0NsLfipbhNN4NIpeEnjv6wQM5V0RYjSB707y9p4eAoUhouGQXtbYRXpY7lhVK"; 
   
-  if (discordWebhookUrl && discordWebhookUrl !== "https://discord.com/api/webhooks/1513961457518121101/dryBxbx0NsLfipbhNN4NIpeEnjv6wQM5V0RYjSB707y9p4eAoUhouGQXtbYRXpY7lhVK") {
-    const messageData = {
-      username: "SparrowUPinkHen 收銀機",
-      content: `🛒 **【一般商品區有新訂單啦！】** 🛒\n` +
-               `👤 **買家姓名**: ${customer_name}\n` +
-               `💬 **LINE ID**: ${line_id}\n` +
-               `📦 **購買明細**: \n\`\`\`${order_items}\`\`\`\n` +
-               `📝 **買家備註**: ${note || "無"}\n` +
-               `⏰ **下單時間**: ${new Date().toLocaleString("zh-TW")}\n` +
-               `-----------------------------------------`
-    };
+  const messageData = {
+    username: "SparrowUPinkHen 收銀機",
+    content: `🛒 **【一般商品區有新訂單啦！】** 🛒\n` +
+             `👤 **買家姓名**: ${customer_name}\n` +
+             `💬 **LINE ID**: ${line_id}\n` +
+             `📦 **購買明細**: \n\`\`\`${order_items}\`\`\`\n` +
+             `📝 **買家備註**: ${note || "無"}\n` +
+             `⏰ **下單時間**: ${new Date().toLocaleString("zh-TW")}\n` +
+             `-----------------------------------------`
+  };
 
-    fetch(discordWebhookUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(messageData)
-    }).catch(err => console.error("Discord 通知發送失敗:", err));
-  }
+  fetch(discordWebhookUrl, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(messageData)
+  }).catch(err => console.error("Discord 通知發送失敗:", err));
 
   localStorage.removeItem("cart");
   loadCart();
