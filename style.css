@@ -96,12 +96,15 @@ body {
   padding: 50px 40px;
 }
 
-/* 🎯 完美二合一：維持一排 4 張，並成功解鎖「整體置中」魔法！ */
+/* 🎯 把這裡的 product-grid 換成這段設定 */
 .product-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  
+  /* ⚡ 終極關鍵：改成 max-content！讓格子不要瞎放大，緊緊包住卡片就好 */
+  grid-template-columns: repeat(4, max-content); 
+  
   gap: 25px;
-  justify-content: center;
+  justify-content: center; /* 這樣置中才會真正啟動！ */
 }
 
 .product-card {
