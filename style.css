@@ -91,12 +91,11 @@ body {
 /* Product */
 
 .product {
-  max-width: 1400px; /* 稍微縮減最大寬度，讓 4 張卡片在大螢幕更緊湊置中 */
+  max-width: 1400px;
   margin: auto;
   padding: 50px 40px;
 }
 
-/* 🎯 終極修正：限制卡片最小 250px，最大 1fr 均分，徹底解決大小不一與右邊空格問題 */
 .product-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(250px, 1fr));
@@ -113,7 +112,7 @@ body {
   border: 1px solid rgba(255,255,255,0.08);
   box-shadow: 0 10px 30px rgba(0,0,0,0.5);
   transition: 0.3s;
-  width: 100%; /* 確保卡片填滿網格 */
+  width: 100%;
 }
 
 .product-card:hover {
@@ -231,16 +230,15 @@ body {
   padding: 60px 20px;
 }
 
-/* 🎯 換成這段：加上兩端對齊，並針對手機版微調行高與字距 */
 .about-card {
   max-width: 900px;
   margin: auto;
-  line-height: 1.7;        /* 微調行高，手機看更緊湊舒服 */
-  letter-spacing: 0.5px;   /* 讓中文字之間有一點點微小的呼吸空間 */
+  line-height: 1.7;
+  letter-spacing: 0.5px;
   color: white;
   font-size: 18px;
-  text-align: justify;     /* ⚡ 關鍵：左右兩端對齊，消滅奇怪空格 */
-  word-break: break-all;   /* ⚡ 關鍵：強迫中英文完美斷行 */
+  text-align: justify;
+  word-break: break-all;
 }
 
 .about-card h2 {
@@ -408,66 +406,90 @@ footer {
 
 /* Responsive */
 
-/* 平板 */
-@media (max-width:1000px){
-  .product-grid{
-    grid-template-columns:repeat(3, 1fr);
-    gap:15px;
+@media (max-width: 1000px) {
+  .product-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
   }
 }
 
-/* 手機 */
-@media (max-width:768px){
+@media (max-width: 768px) {
+  .navbar {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    flex-wrap: nowrap;
+    padding: 10px 5px;
+    gap: 0;
+  }
+  .navbar a {
+    font-size: 14px;
+    padding: 6px 2px;
+    white-space: nowrap;
+    flex: 1;
+    text-align: center;
+  }
   .product {
-    padding:20px 8px;
+    padding: 20px 8px;
   }
-  .product-grid{
-    grid-template-columns:repeat(2, 1fr);
-    gap:12px;
+  .product-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
   }
-  .product-card{
-    border-radius:14px;
+  .product-card {
+    border-radius: 14px;
   }
-  .product-card img{
-    padding:2px;
+  .product-card img {
+    padding: 2px;
   }
-  .product-card h3{
-    font-size:15px;
-    line-height:1.2;
-    padding:8px;
+  .product-card h3 {
+    font-size: 15px;
+    line-height: 1.2;
+    padding: 8px;
   }
-  .product-card p{
-    font-size:13px;
-    line-height:1.25;
-    padding:0 8px 8px;
+  .product-card p {
+    font-size: 13px;
+    line-height: 1.25;
+    padding: 0 8px 8px;
+    word-break: break-all;
+    overflow-wrap: break-word;
+    text-align: justify;
   }
-  .product-card strong{
-    font-size:14px;
-    padding:0 8px 8px;
+  .product-card strong {
+    font-size: 14px;
+    padding: 0 8px 8px;
   }
-  .add-cart-btn{
-    width:36px;
-    height:36px;
-    right:8px;
-    bottom:8px;
-  }
-}
-
-/* 超小手機 */
-@media (max-width:480px){
-  .product-grid{
-    grid-template-columns:repeat(2, 1fr);
-    gap:10px;
-  }
-  .product-card h3{
-    font-size:14px;
-  }
-  .product-card p{
-    font-size:12px;
+  .add-cart-btn {
+    width: 36px;
+    height: 36px;
+    right: 8px;
+    bottom: 8px;
   }
 }
 
-/* 手機版標頭與字體獨立區 */
+@media (max-width: 480px) {
+  .navbar {
+    padding: 8px 2px;
+  }
+  .navbar a {
+    font-size: 13px;
+    padding: 6px 1px;
+    letter-spacing: -0.5px;
+    white-space: nowrap;
+    flex: 1;
+  }
+  .product-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  .product-card h3 {
+    font-size: 14px;
+  }
+  .product-card p {
+    font-size: 12px;
+  }
+}
+
 @media (max-width: 768px) {
   .header h1 {
     font-size: 30px;
@@ -482,8 +504,12 @@ footer {
   .hero-text h2 {
     font-size: 21px;
   }
-  .about-card {
+  .about-card, .about-card p, .about-section p {
     font-size: 16px;
+    word-break: break-all !important;
+    overflow-wrap: break-word !important;
+    text-align: justify !important;
+    hyphens: auto;
   }
   .cart-item {
     flex-direction: column;
