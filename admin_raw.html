@@ -10,8 +10,28 @@
 <body>
 
 <header class="header">
+
   <h1>裸卡管理後台</h1>
-  <p class="slogan">Add Raw Cards</p>
+
+  <p class="slogan">
+    Add Raw Cards
+  </p>
+
+  <button
+    onclick="logout()"
+    style="
+      padding:12px 25px;
+      border:none;
+      border-radius:999px;
+      background:#ffcb05;
+      color:#111;
+      font-weight:bold;
+      cursor:pointer;
+      margin-top:15px;
+    ">
+    登出
+  </button>
+
 </header>
 
 <section class="admin-section">
@@ -45,6 +65,28 @@
 <script src="supabase.js"></script>
 
 <script>
+
+async function checkLogin() {
+
+  const { data } =
+  await supabaseClient.auth.getSession();
+
+  if (!data.session) {
+
+    window.location.href =
+    "login.html";
+
+    return;
+  }
+}
+
+async function logout() {
+
+  await supabaseClient.auth.signOut();
+
+  window.location.href =
+  "login.html";
+}
 
 async function addProduct() {
 
@@ -95,6 +137,8 @@ async function addProduct() {
   document.getElementById("price").value = "";
   document.getElementById("image").value = "";
 }
+
+checkLogin();
 
 </script>
 

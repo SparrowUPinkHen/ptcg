@@ -30,6 +30,17 @@
   <input type="text" id="lineId" placeholder="LINE ID">
   <input type="number" id="price" placeholder="希望售價">
   <textarea id="description" placeholder="備註"></textarea>
+
+  <div style="margin:15px 0; text-align:left; color:white; line-height:1.6;">
+    <label>
+      <input type="checkbox" id="agreeTerms">
+      我已閱讀並同意
+      <a href="terms.html" target="_blank" style="color:#ffcb05;">
+        寄賣規範與免責聲明
+      </a>
+    </label>
+  </div>
+
   <input type="file" id="cardImage" accept="image/*">
 
   <button onclick="submitConsignment()">
@@ -51,15 +62,21 @@
 async function submitConsignment() {
   const status = document.getElementById("status");
 
-  const cardName = document.getElementById("cardName").value;
-  const sellerName = document.getElementById("sellerName").value;
-  const lineId = document.getElementById("lineId").value;
+  const cardName = document.getElementById("cardName").value.trim();
+  const sellerName = document.getElementById("sellerName").value.trim();
+  const lineId = document.getElementById("lineId").value.trim();
   const price = Number(document.getElementById("price").value) || 0;
-  const description = document.getElementById("description").value;
+  const description = document.getElementById("description").value.trim();
   const file = document.getElementById("cardImage").files[0];
+  const agreeTerms = document.getElementById("agreeTerms").checked;
 
   if (!cardName || !sellerName || !lineId || !file) {
     status.innerText = "請填寫卡片名稱、名字、LINE，並選擇圖片";
+    return;
+  }
+
+  if (!agreeTerms) {
+    status.innerText = "請先閱讀並同意寄賣規範與免責聲明";
     return;
   }
 
@@ -111,6 +128,7 @@ async function submitConsignment() {
   document.getElementById("price").value = "";
   document.getElementById("description").value = "";
   document.getElementById("cardImage").value = "";
+  document.getElementById("agreeTerms").checked = false;
 }
 </script>
 
