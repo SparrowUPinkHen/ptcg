@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>寄賣審核後台</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<header class="header">
+  <h1>寄賣審核後台</h1>
+  <p class="slogan">Consignment Review</p>
+</header>
+
+<section class="product">
+  <div id="review-list" class="product-grid"></div>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase.js"></script>
+
+<script>
+async function loadRequests() {
+  const container = document.getElementById("review-list");
+
+  const { data, error } = await supabaseClient
+    .from("consignment_requests")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.log(error);
+    container.innerHTML = "<p>讀取失敗。</p>";
+    return;
+  }
+
+  container.innerHTML = "";
+
+  data.forEach(card => {
+    container.innerHTML += `
+      <div class="product-card">
+        <img src="${card.image_url}" alt="${card.card_name}">
+
+        <h3>${card.card_name}</h3>
+        <p>賣家：${card.seller_name}</p>
+        <p>LINE：${card.line_id}</p>
+        <p>價格：NT$${card.price || 0}</p>
+        <p>備註：${card.description || ""}</p>
+        <p>狀態：${card.status}</p>
+
+        <button onclick="updateStatus(${card.id}, 'approved')">
+          Approve
+        </button>
+
+        <button onclick="updateStatus(${card.id}, 'rejected')">
+          Reject
+        </button>
+      </div>
+    `;
+  });
+}
+
+async function updateStatus(id, status) {
+  const { error } = await supabaseClient
+    .from("consignment_requests")
+    .update({ status: status })
+    .eq("id", id);
+
+  if (error) {
+    console.log(error);
+    alert("更新失敗");
+    return;
+  }
+
+  alert("已更新為 " + status);
+  loadRequests();
+}
+
+loadRequests();
+</script>
+
+</body>
+</html>

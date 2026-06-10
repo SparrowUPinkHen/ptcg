@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>寄賣區 | SparrowUPinkHen PTCG</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<header class="header">
+  <nav class="navbar">
+    <a href="index.html">首頁</a>
+    <a href="gradedcard.html">鑑定卡區</a>
+    <a href="rawcard.html">裸卡區</a>
+    <a href="consignment.html">寄賣區</a>
+    <a href="auction.html">競標區</a>
+    <a href="about.html">關於我們</a>
+
+    <a href="cart.html" class="cart-link">
+      <img src="images/cart-icon.png" alt="購物車">
+      <span id="cart-count">0</span>
+    </a>
+  </nav>
+
+  <h1>寄賣區</h1>
+  <p class="slogan">Cards from fellow collectors.</p>
+
+  <div class="home-links">
+    <a href="consign.html">我要寄賣</a>
+  </div>
+</header>
+
+<section class="product">
+  <div id="consignment-list" class="product-grid"></div>
+</section>
+
+<footer>
+  <p>© SparrowUPinkHen PTCG</p>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase.js"></script>
+
+<script>
+async function loadConsignmentCards() {
+  const container = document.getElementById("consignment-list");
+
+  const { data, error } = await supabaseClient
+    .from("consignment_requests")
+    .select("*")
+    .eq("status", "approved")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.log(error);
+    container.innerHTML = "<p>寄賣商品讀取失敗。</p>";
+    return;
+  }
+
+  if (!data || data.length === 0) {
+    container.innerHTML = "<p>目前還沒有寄賣商品。</p>";
+    return;
+  }
+
+  container.innerHTML = "";
+
+  data.forEach(card => {
+    const priceHTML =
+      card.price && card.price > 0
+        ? `<strong>NT$${card.price}</strong>`
+        : `<strong>價格請洽詢</strong>`;
+
+    container.innerHTML += `
+      <div class="product-card">
+        <img src="${card.image_url}" alt="${card.card_name}">
+        <h3>${card.card_name}</h3>
+        <p>${card.description || ""}</p>
+        ${priceHTML}
+        <p>賣家：${card.seller_name || ""}</p>
+        <p>LINE：${card.line_id || "請洽詢"}</p>
+      </div>
+    `;
+  });
+}
+
+loadConsignmentCards();
+</script>
+
+</body>
+</html>

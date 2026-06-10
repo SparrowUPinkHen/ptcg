@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>我要寄賣 | SparrowUPinkHen PTCG</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<header class="header">
+  <nav class="navbar">
+    <a href="index.html">首頁</a>
+    <a href="gradedcard.html">鑑定卡區</a>
+    <a href="rawcard.html">裸卡區</a>
+    <a href="consignment.html">寄賣區</a>
+    <a href="auction.html">競標區</a>
+    <a href="about.html">關於我們</a>
+  </nav>
+
+  <h1>我要寄賣</h1>
+  <p class="slogan">Submit your card for review.</p>
+</header>
+
+<section class="admin-section">
+
+  <input type="text" id="cardName" placeholder="卡片名稱">
+  <input type="text" id="sellerName" placeholder="您的名字">
+  <input type="text" id="lineId" placeholder="LINE ID">
+  <input type="number" id="price" placeholder="希望售價">
+  <textarea id="description" placeholder="備註"></textarea>
+  <input type="file" id="cardImage" accept="image/*">
+
+  <button onclick="submitConsignment()">
+    送出寄賣申請
+  </button>
+
+  <p id="status"></p>
+
+</section>
+
+<footer>
+  <p>© SparrowUPinkHen PTCG</p>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase.js"></script>
+
+<script>
+async function submitConsignment() {
+  const status = document.getElementById("status");
+
+  const cardName = document.getElementById("cardName").value;
+  const sellerName = document.getElementById("sellerName").value;
+  const lineId = document.getElementById("lineId").value;
+  const price = Number(document.getElementById("price").value) || 0;
+  const description = document.getElementById("description").value;
+  const file = document.getElementById("cardImage").files[0];
+
+  if (!cardName || !sellerName || !lineId || !file) {
+    status.innerText = "請填寫卡片名稱、名字、LINE，並選擇圖片";
+    return;
+  }
+
+  status.innerText = "上傳中...";
+
+  const fileName = Date.now() + "-" + file.name;
+
+  const { error: uploadError } = await supabaseClient.storage
+    .from("consignment-images")
+    .upload(fileName, file);
+
+  if (uploadError) {
+    console.log(uploadError);
+    status.innerText = "圖片上傳失敗";
+    return;
+  }
+
+  const { data: publicUrlData } = supabaseClient.storage
+    .from("consignment-images")
+    .getPublicUrl(fileName);
+
+  const imageUrl = publicUrlData.publicUrl;
+
+  const { error: insertError } = await supabaseClient
+    .from("consignment_requests")
+    .insert([
+      {
+        card_name: cardName,
+        seller_name: sellerName,
+        line_id: lineId,
+        price: price,
+        description: description,
+        image_url: imageUrl,
+        status: "pending"
+      }
+    ]);
+
+  if (insertError) {
+    console.log(insertError);
+    status.innerText = "資料寫入失敗";
+    return;
+  }
+
+  status.innerText = "寄賣申請已送出，等待審核！";
+
+  document.getElementById("cardName").value = "";
+  document.getElementById("sellerName").value = "";
+  document.getElementById("lineId").value = "";
+  document.getElementById("price").value = "";
+  document.getElementById("description").value = "";
+  document.getElementById("cardImage").value = "";
+}
+</script>
+
+</body>
+</html>

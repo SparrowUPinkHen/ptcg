@@ -520,3 +520,9 @@ footer {
     height: auto;
   }
 }
+.admin-section textarea {
+
+  min-height: 120px;
+
+  resize: vertical;
+}
