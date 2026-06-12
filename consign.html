@@ -27,9 +27,21 @@
 
   <input type="text" id="cardName" placeholder="卡片名稱">
   <input type="text" id="sellerName" placeholder="您的名字">
-  <input type="text" id="lineId" placeholder="LINE ID">
+  
+  <div class="contact-group" style="margin-bottom: 15px; display: flex; gap: 10px;">
+    <select id="contactType" onchange="updatePlaceholder()" style="padding: 10px; border-radius: 4px; border: 1px solid #ccc; background: #fff; width: 110px; color: #333; font-weight: bold;">
+      <option value="LINE">💬 LINE</option>
+      <option value="手機">📞 手機</option>
+      <option value="FB">👤 FB</option>
+      <option value="IG">📸 IG</option>
+      <option value="EMAIL">✉️ EMAIL</option>
+    </select>
+    <input type="text" id="contactValue" placeholder="請輸入帳號或號碼" style="flex: 1; margin-bottom: 0;">
+  </div>
+
   <input type="number" id="price" placeholder="希望售價">
-  <textarea id="description" placeholder="備註"></textarea>
+  
+  <textarea id="description" placeholder="備註（⚠️如果要面交，請記得留下您方便的地區唷！）"></textarea>
 
   <div style="margin:15px 0; text-align:left; color:white; line-height:1.6;">
     <label>
@@ -59,24 +71,67 @@
 <script src="supabase.js"></script>
 
 <script>
+// 🎯 智慧提示文字：選到 FB 時，精準引導賣家貼上主頁網址
+function updatePlaceholder() {
+  const type = document.getElementById("contactType").value;
+  const valueInput = document.getElementById("contactValue");
+  
+  if (type === "EMAIL") {
+    valueInput.placeholder = "請輸入您的電子信箱 (任何信箱皆可)";
+  } else if (type === "FB") {
+    valueInput.placeholder = "請貼上您的 FB 個人主頁網址 (避免同名認錯人唷！)";
+  } else {
+    valueInput.placeholder = "請輸入帳號或號碼";
+  }
+}
+
 async function submitConsignment() {
   const status = document.getElementById("status");
 
   const cardName = document.getElementById("cardName").value.trim();
   const sellerName = document.getElementById("sellerName").value.trim();
-  const lineId = document.getElementById("lineId").value.trim();
+  
+  const contactType = document.getElementById("contactType").value;
+  const contactValue = document.getElementById("contactValue").value.trim();
+  
   const price = Number(document.getElementById("price").value) || 0;
   const description = document.getElementById("description").value.trim();
   const file = document.getElementById("cardImage").files[0];
   const agreeTerms = document.getElementById("agreeTerms").checked;
 
-  if (!cardName || !sellerName || !lineId || !file) {
-    status.innerText = "請填寫卡片名稱、名字、LINE，並選擇圖片";
+  if (!cardName || !sellerName || !contactValue || !file) {
+    status.innerText = "❌ 請填寫卡片名稱、名字、聯絡資料，並選擇圖片";
     return;
   }
 
+  if (contactType === "LINE") {
+    const lineIdRegex = /^[a-zA-Z0-9.\-_]{4,20}$/;
+    if (!lineIdRegex.test(contactValue)) {
+      status.innerText = "❌ LINE ID 格式不正確（不能包含中文、空格或特殊符號）";
+      alert("🚨 LINE ID 格式不對唷！如果那是手機號碼，請將左側選單切換成【手機】！");
+      return;
+    }
+  }
+  
+  // 🎯 FB 網址防呆驗證：如果是 FB 卻沒輸入網址，直接攔截阻擋
+  if (contactType === "FB") {
+    if (!contactValue.includes("facebook.com")) {
+      status.innerText = "❌ FB 欄位請提供您的個人主頁網址";
+      alert("🚨 臉書同名的人太多了！請去您的 FB 個人檔案複製「網址」再貼過來，這樣買家才不會找錯人唷！");
+      return;
+    }
+  }
+  
+  if (contactType === "EMAIL") {
+    if (!contactValue.includes("@") || !contactValue.includes(".")) {
+      status.innerText = "❌ Email 格式不正確，請確認是否有輸入 @ 符號與完整的網域";
+      alert("🚨 Email 格式似乎怪怪的唷，請再檢查一次！");
+      return;
+    }
+  }
+
   if (!agreeTerms) {
-    status.innerText = "請先閱讀並同意寄賣規範與免責聲明";
+    status.innerText = "❌ 請先閱讀並同意寄賣規範與免責聲明";
     return;
   }
 
@@ -100,13 +155,34 @@ async function submitConsignment() {
 
   const imageUrl = publicUrlData.publicUrl;
 
+  let finalContactLink = "";
+  switch (contactType) {
+    case "LINE":
+      finalContactLink = `https://line.me/R/ti/p/~${contactValue}`;
+      break;
+    case "手機":
+      finalContactLink = `tel:${contactValue}`;
+      break;
+    case "FB":
+      // 因為上面有防呆驗證，這裡進來的絕對是完整的 facebook 網址，直接原樣寫入
+      finalContactLink = contactValue;
+      break;
+    case "IG":
+      const igUsername = contactValue.replace("@", "");
+      finalContactLink = `https://www.instagram.com/${igUsername}/`;
+      break;
+    case "EMAIL":
+      finalContactLink = `mailto:${contactValue}`;
+      break;
+  }
+
   const { error: insertError } = await supabaseClient
     .from("consignment_requests")
     .insert([
       {
         card_name: cardName,
         seller_name: sellerName,
-        line_id: lineId,
+        line_id: finalContactLink,
         price: price,
         description: description,
         image_url: imageUrl,
@@ -120,15 +196,18 @@ async function submitConsignment() {
     return;
   }
 
-  status.innerText = "寄賣申請已送出，等待審核！";
+  status.innerText = "🎉 寄賣申請已送出，等待審核！";
 
   document.getElementById("cardName").value = "";
   document.getElementById("sellerName").value = "";
-  document.getElementById("lineId").value = "";
+  document.getElementById("contactValue").value = "";
   document.getElementById("price").value = "";
   document.getElementById("description").value = "";
   document.getElementById("cardImage").value = "";
   document.getElementById("agreeTerms").checked = false;
+  
+  document.getElementById("contactType").value = "LINE";
+  updatePlaceholder();
 }
 </script>
 

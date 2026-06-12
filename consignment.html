@@ -5,6 +5,49 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>寄賣區 | SparrowUPinkHen PTCG</title>
   <link rel="stylesheet" href="style.css">
+  
+  <style>
+    /* 🎯 這裡面完全不寫 .product-grid，確保完全延用你之前在 style.css 裡調好的一排幾個！ */
+    
+    .product-card {
+      display: flex;
+      flex-direction: column;
+      height: 100%; /* 讓每一張商品卡片的高度都一樣高 */
+      box-sizing: border-box;
+    }
+    
+    .product-card h3 {
+      margin: 10px 0 5px 0;
+    }
+    
+    .product-card .card-description {
+      flex: 1; /* 👑 核心關鍵：自動撐開備註空間，把下面的價格、名字和按鈕強制推到最底部對齊 */
+      margin-bottom: 10px;
+    }
+    
+    .front-contact-btn {
+      display: inline-block;
+      color: white !important;
+      padding: 10px 16px;
+      border-radius: 4px;
+      border: none;
+      font-weight: bold;
+      font-size: 13px; /* 縮小字體，確保各種長度的信箱都能完美容納 */
+      margin-top: 10px;
+      width: 100%;
+      box-sizing: border-box;
+      text-align: center;
+      transition: opacity 0.2s;
+      cursor: pointer;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis; /* 當信箱真的太長時，自動呈現引號縮略，絕不撐壞整體卡片排版 */
+    }
+    
+    .front-contact-btn:hover {
+      opacity: 0.9;
+    }
+  </style>
 </head>
 
 <body>
@@ -30,7 +73,6 @@
   <div class="home-links">
     <a href="consign.html">我要寄賣</a>
     <a href="terms.html">寄賣規範</a>
-
   </div>
 </header>
 
@@ -74,16 +116,82 @@ async function loadConsignmentCards() {
         ? `<strong>NT$${card.price}</strong>`
         : `<strong>價格請洽詢</strong>`;
 
+    const contactUrl = card.line_id || "";
+    let btnText = "💬 聯絡賣家";
+    let btnBgColor = "#666";
+    let isEmail = false;
+    let emailAddress = "";
+
+    if (contactUrl.includes("line.me")) {
+      btnText = "💬 LINE 聯絡賣家";
+      btnBgColor = "#06C755";
+    } else if (contactUrl.includes("tel:")) {
+      btnText = "📞 電話聯絡賣家";
+      btnBgColor = "#007AFF";
+    } else if (contactUrl.includes("facebook.com")) {
+      // 🎯 優化核心：因為現在進來的必是網址，按鈕文字改成直達主頁，體驗更好
+      btnText = "👤 前往 FB 賣家主頁";
+      btnBgColor = "#1877F2";
+    } else if (contactUrl.includes("instagram.com")) {
+      btnText = "📸 IG 私訊購買";
+      btnBgColor = "#E1306C";
+    } else if (contactUrl.includes("mailto:")) {
+      isEmail = true;
+      // 🎯 動態提取：去掉開頭的 mailto:，不論什麼信箱都能完整呈現
+      emailAddress = contactUrl.replace("mailto:", "");
+      btnText = `✉️ 複製信箱：${emailAddress}`;
+      btnBgColor = "#4A5568"; 
+    }
+
+    // 判斷按鈕點擊後的行為
+    const clickEvent = isEmail 
+      ? `onclick="copyEmail('${emailAddress}')"` 
+      : `onclick="goToContact('${contactUrl}')"`;
+
     container.innerHTML += `
       <div class="product-card">
         <img src="${card.image_url}" alt="${card.card_name}">
         <h3>${card.card_name}</h3>
-        <p>${card.description || ""}</p>
-        ${priceHTML}
-        <p>賣家：${card.seller_name || ""}</p>
-        <p>LINE：${card.line_id || "請洽詢"}</p>
+        <div class="card-description">
+          <p>${card.description || ""}</p>
+        </div>
+        <div>
+          ${priceHTML}
+          <p style="margin-top: 8px; font-size: 14px; color: #aaa; margin-bottom: 0;">寄賣賣家：${card.seller_name || "未知"}</p>
+          <button ${clickEvent} class="front-contact-btn" style="background-color: ${btnBgColor};" title="${isEmail ? '點擊自動複製信箱' : ''}">
+            ${btnText}
+          </button>
+        </div>
       </div>
     `;
+  });
+}
+
+// 針對社群與電話的隱形跳轉機制
+function goToContact(url) {
+  if (!url) {
+    alert("抱歉，該賣家沒有提供有效的聯絡方式。");
+    return;
+  }
+  const link = document.createElement('a');
+  link.href = url;
+  link.target = '_blank';
+  link.click();
+}
+
+// 🎯 精準一鍵複製：完全彈性抓取任何種類的信箱
+function copyEmail(email) {
+  navigator.clipboard.writeText(email).then(() => {
+    alert(`🎉 已成功複製賣家信箱：\n${email}\n\n可以直接去貼上寄信囉！`);
+  }).catch(err => {
+    // 相容性備用方案
+    const textArea = document.createElement("textarea");
+    textArea.value = email;
+    document.body.appendChild(textArea);
+    textArea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textArea);
+    alert(`🎉 已複製賣家信箱：\n${email}`);
   });
 }
 

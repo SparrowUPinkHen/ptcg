@@ -5,6 +5,24 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>寄賣審核後台</title>
   <link rel="stylesheet" href="style.css">
+  
+  <style>
+    .contact-btn {
+      display: inline-block;
+      color: white !important;
+      padding: 6px 14px;
+      border-radius: 4px;
+      border: none;
+      font-weight: bold;
+      font-size: 14px;
+      margin: 5px 0 15px 0;
+      transition: opacity 0.2s;
+      cursor: pointer;
+    }
+    .contact-btn:hover {
+      opacity: 0.8;
+    }
+  </style>
 </head>
 
 <body>
@@ -44,15 +62,10 @@
 <script>
 
 async function checkLogin() {
-
-  const { data } =
-  await supabaseClient.auth.getSession();
+  const { data } = await supabaseClient.auth.getSession();
 
   if (!data.session) {
-
-    window.location.href =
-    "login.html";
-
+    window.location.href = "login.html";
     return;
   }
 
@@ -60,39 +73,51 @@ async function checkLogin() {
 }
 
 async function logout() {
-
   await supabaseClient.auth.signOut();
-
-  window.location.href =
-  "login.html";
+  window.location.href = "login.html";
 }
 
 async function loadRequests() {
+  const container = document.getElementById("review-list");
 
-  const container =
-  document.getElementById("review-list");
-
-  const { data, error } =
-  await supabaseClient
-  .from("consignment_requests")
-  .select("*")
-  .order("created_at", {
-    ascending: false
-  });
+  const { data, error } = await supabaseClient
+    .from("consignment_requests")
+    .select("*")
+    .order("created_at", {
+      ascending: false
+    });
 
   if (error) {
-
     console.log(error);
-
-    container.innerHTML =
-    "<p>讀取失敗。</p>";
-
+    container.innerHTML = "<p>讀取失敗。</p>";
     return;
   }
 
   container.innerHTML = "";
 
   data.forEach(card => {
+    
+    // 🎯 五合一大腦判斷邏輯：新增 EMAIL 判斷與顏色設定
+    const contactUrl = card.line_id || "";
+    let btnText = "💬 聯絡賣家";
+    let btnBgColor = "#666"; // 預設灰色
+
+    if (contactUrl.includes("line.me")) {
+      btnText = "💬 LINE 聯絡";
+      btnBgColor = "#06C755"; // LINE 官方綠
+    } else if (contactUrl.includes("tel:")) {
+      btnText = "📞 撥打手機";
+      btnBgColor = "#007AFF"; // 蘋果藍
+    } else if (contactUrl.includes("facebook.com")) {
+      btnText = "👤 FB 聯絡";
+      btnBgColor = "#1877F2"; // 臉書藍
+    } else if (contactUrl.includes("instagram.com")) {
+      btnText = "📸 IG 聯絡";
+      btnBgColor = "#E1306C"; // IG 紅
+    } else if (contactUrl.includes("mailto:")) {
+      btnText = "✉️ EMAIL 聯絡";
+      btnBgColor = "#4A5568"; // EMAIL 鋼鐵灰
+    }
 
     container.innerHTML += `
       <div class="product-card">
@@ -105,7 +130,11 @@ async function loadRequests() {
 
         <p>賣家：${card.seller_name}</p>
 
-        <p>LINE：${card.line_id}</p>
+        <p>聯絡管道：
+          <button onclick="goToContact('${contactUrl}')" class="contact-btn" style="background-color: ${btnBgColor};">
+            ${btnText}
+          </button>
+        </p>
 
         <p>價格：NT$${card.price || 0}</p>
 
@@ -128,27 +157,30 @@ async function loadRequests() {
   });
 }
 
-async function updateStatus(id, status) {
+// 🎯 點擊按鈕才動態開啟分頁的跳轉功能
+function goToContact(url) {
+  if (!url) {
+    alert("抱歉，該賣家沒有提供有效的聯絡方式。");
+    return;
+  }
+  window.open(url, '_blank');
+}
 
-  const { error } =
-  await supabaseClient
-  .from("consignment_requests")
-  .update({
-    status: status
-  })
-  .eq("id", id);
+async function updateStatus(id, status) {
+  const { error } = await supabaseClient
+    .from("consignment_requests")
+    .update({
+      status: status
+    })
+    .eq("id", id);
 
   if (error) {
-
     console.log(error);
-
     alert("更新失敗");
-
     return;
   }
 
   alert("已更新為 " + status);
-
   loadRequests();
 }
 
